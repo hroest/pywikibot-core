@@ -1819,7 +1819,7 @@ def RepeatingGenerator(generator, key_func=lambda x: x, sleep_duration=60,
 
 
 @deprecated_args(pageNumber="step", lookahead=None)
-def PreloadingGenerator(generator, step=50):
+def PreloadingGenerator(generator, step=50, usePageIds=True):
     """
     Yield preloaded pages taken from another generator.
 
@@ -1838,12 +1838,12 @@ def PreloadingGenerator(generator, step=50):
             # if this site is at the step, process it
             group = sites[site]
             sites[site] = []
-            for i in site.preloadpages(group, step):
+            for i in site.preloadpages(group, step, usePageIds=usePageIds):
                 yield i
     for site in sites:
         if sites[site]:
             # process any leftover sites that never reached the step
-            for i in site.preloadpages(sites[site], step):
+            for i in site.preloadpages(sites[site], step, usePageIds=usePageIds):
                 yield i
 
 

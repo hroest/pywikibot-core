@@ -3083,7 +3083,7 @@ class APISite(BaseSite):
         return page._redirtarget
 
     def preloadpages(self, pagelist, groupsize=50, templates=False,
-                     langlinks=False, pageprops=False):
+                     langlinks=False, pageprops=False, usePageIds=True):
         """Return a generator to a list of preloaded pages.
 
         Note that [at least in current implementation] pages may be iterated
@@ -3110,7 +3110,7 @@ class APISite(BaseSite):
                 props += '|pageprops'
             rvgen = api.PropertyGenerator(props, site=self)
             rvgen.set_maximum_items(-1)  # suppress use of "rvlimit" parameter
-            if len(pageids) == len(sublist):
+            if len(pageids) == len(sublist) and usePageIds:
                 # only use pageids if all pages have them
                 rvgen.request["pageids"] = "|".join(pageids)
             else:
