@@ -114,9 +114,84 @@ class Hunk(object):
                 for line in difflib.ndiff(self.a[i1:i2], self.b[j1:j2]):
                     yield check_line(line)
 
+    def _fix_format_diff(self, diff):
+        """
+        The purpose of this function is to fix up diffs produced by
+        difflib.ndiff for pure indels (insertions/deletions).
+
+        In general, a changed line is indicated by difflib by the following pattern:
+
+            - some text
+            ?     ^
+            + some_text
+            ?     ^
+
+        However in cases of pure insertions / deletion, one of the lines
+        indicating the change (starting with ?) is missing. In these cases,
+        difflib only provides a triplet of lines, leading to issues with line
+        coloring. The purpose of the following code is to replace these
+        triplets of -/+/? (pure insertions) or -/?/+ (pure deletions) with
+        quadruplets.
+
+        In other words, this function ensures that the number of lines starting
+        with '?' is always even.
+        """
+
+        tmpdiff = []
+        i = 0
+        for line in diff: 
+
+            # The last two lines
+            if i >= len(diff):
+                break
+            if i >= len(diff) - 2:
+                tmpdiff.append(diff[i])
+                i += 1
+                continue
+
+            # Fetch a triplet of lines
+            l1 = diff[i]
+            l2 = diff[i+1]
+            l3 = diff[i+2]
+
+            # Identify pure insertion: -/+/?
+            if l1.startswith("-") and l2.startswith("+") and l3.startswith("?"):
+
+                # Proceed if we have the last triplet or if the next line is again a +/-
+                if i + 3 == len(diff) or \
+                  not diff[i+3].startswith("?"):
+                    # Extra check: The insertion should reflect the change in
+                    # line length
+                    if l3.count("+") == (len(l2) - len(l1)):
+                        tmpdiff.append(l1)
+                        tmpdiff.append("?" + " " * len(l1))
+                        tmpdiff.extend([l2, l3])
+                        i += 3
+                        continue
+
+            # Identify pure deletion: -/?/+ 
+            if l1.startswith("-") and l2.startswith("?") and l3.startswith("+"):
+
+                # Proceed if we have the last triplet or if the next line is again a +/-
+                if i + 3 == len(diff) or \
+                  not diff[i+3].startswith("?"):
+                    # Extra check: The deletion should reflect the change in
+                    # line length
+                    if l2.count("-") == (len(l1) - len(l3)):
+                        tmpdiff.extend([l1, l2, l3])
+                        tmpdiff.append("?" + " " * len(l3))
+                        i += 3
+                        continue
+
+            tmpdiff.append( diff[i])
+            i += 1
+
+        return tmpdiff 
+
     def format_diff(self):
         """Color diff lines."""
-        diff = iter(self.diff)
+
+        diff = iter(self._fix_format_diff(self.diff))
 
         l1, l2 = '', next(diff)
         for line in diff:
