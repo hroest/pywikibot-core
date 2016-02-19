@@ -212,8 +212,10 @@ class Hunk(object):
         """Color line characters.
 
         If line_ref is None, the whole line is colored.
-        If line_ref[i] is not blank, line[i] is colored.
-        Color depends if line starts with +/-.
+        The line_ref is an indicator which characters actually changed in the
+        line above (line). Therefore, if line_ref[i] is not blank, line[i] is
+        colored. The color is chosen depending on whether the line starts with
+        + or with -.
 
         line: string
         line_ref: string.
