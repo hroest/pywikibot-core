@@ -64,21 +64,21 @@ class Hunk(object):
             '-': 'lightred',
         }
 
-        self.diff = list(self.create_diff())
+        self.diff = list(self._create_diff())
         self.diff_plain_text = u''.join(self.diff)
-        self.diff_text = u''.join(self.format_diff())
+        self.diff_text = u''.join(self._format_diff())
 
         first, last = self.group[0], self.group[-1]
         self.a_rng = (first[1], last[2])
         self.b_rng = (first[3], last[4])
 
-        self.header = self.get_header()
+        self.header = self._get_header()
         self.diff_plain_text = u'%s\n%s' % (self.header, self.diff_plain_text)
         self.diff_text = u'%s' % self.diff_text
 
         self.reviewed = self.PENDING
 
-    def get_header(self):
+    def _get_header(self):
         """Provide header of unified diff."""
         return self.get_header_text(self.a_rng, self.b_rng) + '\n'
 
@@ -89,7 +89,7 @@ class Hunk(object):
         b_rng = format_range_unified(*b_rng)
         return '{0} -{1} +{2} {0}'.format(affix, a_rng, b_rng)
 
-    def create_diff(self):
+    def _create_diff(self):
         """Generator of diff text for this hunk, without formatting."""
         # make sure each line ends with '\n' to prevent
         # behaviour like http://bugs.python.org/issue2142
@@ -188,7 +188,7 @@ class Hunk(object):
 
         return tmpdiff 
 
-    def format_diff(self):
+    def _format_diff(self):
         """Color diff lines."""
 
         diff = iter(self._fix_format_diff(self.diff))
@@ -200,15 +200,15 @@ class Hunk(object):
             if l1.startswith('?'):
                 continue
             if l2.startswith('?'):
-                yield self.color_line(l1, l2)
+                yield self._color_line(l1, l2)
             else:
-                yield self.color_line(l1)
+                yield self._color_line(l1)
 
         # handle last line
         if not l2.startswith('?'):
-            yield self.color_line(l2)
+            yield self._color_line(l2)
 
-    def color_line(self, line, line_ref=None):
+    def _color_line(self, line, line_ref=None):
         """Color line characters.
 
         If line_ref is None, the whole line is colored.
